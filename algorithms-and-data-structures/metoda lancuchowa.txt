@@ -1,0 +1,120 @@
+#include<iostream>
+using namespace std;
+
+struct tree
+{
+    int val;
+    tree* left;
+    tree* right;
+};
+
+struct lista
+{
+    string imie;
+    lista* next;
+};
+
+void del(lista*& H)
+{
+    if (H != NULL)
+    {
+        lista* p = H;
+        H = H->next;
+        delete p;
+    }
+}
+void search_delete(lista*& H, string x)
+{
+    if (H != NULL)
+    {
+        if (H->imie == x)
+            del(H);
+        else
+        {
+            lista* p = H;
+            while (p->next != NULL && p->next->imie != x)
+            {
+                p = p->next;
+            }
+            if (p->next != NULL)
+            {
+                del(p->next);
+            }
+        }
+    }
+}
+
+
+
+void add(lista*& h, string x)
+{
+    lista* p = new lista;
+    p->imie = x;
+    p->next = h;
+
+    h = p;
+}
+
+void show(lista*& h)
+{
+    lista* p = h;
+
+    //cout << "h->";
+    while (p != NULL)
+    {
+        cout << p->imie << "->";
+        p = p->next;
+    }
+    cout << "NULL" << endl;
+}
+int czarnaSkrzynka(string imie)
+{
+    int suma = 0;
+    int x = 0;
+    while (imie[x] != NULL)
+    {
+        suma += (imie[x] - 96);
+        x++;
+    }
+    return suma % 13;
+}
+void dodaj(lista** tablica, string imie)
+{
+    int hash = czarnaSkrzynka(imie);
+    add(tablica[hash], imie);
+}
+
+int znajdz(lista** tablica, string imie)
+{
+
+    if (tablica[czarnaSkrzynka(imie)] != NULL)
+    {
+
+        lista* p = tablica[czarnaSkrzynka(imie)];
+        while (p != NULL)
+        {
+            if (p->imie == imie)
+            {
+
+                return 1;
+            }
+            p = p->next;
+
+        }
+        return 0;
+    }
+
+}
+
+
+
+int main()
+{
+    lista** tablica = new lista * [13];
+    for (int i = 0; i < 13; i++)
+    {
+        tablica[i] = NULL;
+    }
+    dodaj(tablica, "kasia");
+    cout<<znajdz(tablica, "kasia");
+}

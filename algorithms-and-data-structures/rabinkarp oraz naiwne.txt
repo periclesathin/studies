@@ -1,0 +1,105 @@
+#include <iostream>
+#include<string>
+using namespace std;
+bool Search(string text, string pattern)
+{
+    bool t = false;
+    if (pattern != "")
+        for (int i = 0; i < text.size() - pattern.size(); i++)
+        {
+            if (text[i] == pattern[0])
+            {
+                t = true;
+                for (int j = 1; j < pattern.size(); j++)
+                {
+                    if (text[i + j] != pattern[j])
+                    {
+                        t = false;
+                        break;
+                    }
+                }
+                if (t)
+                {
+                    cout << "znaleziono wzorzec w tekscie" << endl;
+                    break;
+                }
+
+            }
+        }
+    return t;
+}
+int Hash(string t)
+{
+
+    int s = 0;
+    for (int i = 0; i < t.size(); i++)
+    {
+        s = s + t[i];
+    }
+    return s % 13;
+}
+bool Rabin_Karp(string text, string pattern)
+{
+    bool t = false;
+
+
+    int i = 0;
+    if (pattern != "")
+    {
+        for (i; i < text.size() - pattern.size(); i++)
+        {
+            int liczba1 = 0;
+            for (int q = 0; q <= pattern.size(); q++)
+            {
+
+                liczba1 += (pattern[q] - 96) * pow(10, (pattern.size() - q-1));
+            }
+
+            int liczba2 = 0;
+            for (int q = 0; q <= pattern.size(); q++)
+            {
+                if (text[i + q] != NULL)
+                {
+                    liczba2 += (text[i + q ] - 96) * pow(10, (pattern.size() - q-1 ));
+                }
+            }
+
+            if (liczba1 == liczba2)
+            {
+
+                t = true;
+
+                for (int j = 0; j < pattern.size(); j++)
+                {
+                    if (text[i + j] != pattern[j])
+                    {
+                        t = false;
+                        break;
+                    }
+                }
+                if (t)
+                {
+                    cout << "znaleziono wzorzec w tekscie" << endl;
+                    break;
+                }
+
+            }
+
+        }
+    }
+    if (!t)
+    {
+        cout << "nie znaleziono wzorzec w tekscie" << endl;
+
+    }
+
+    return t;
+}
+int main()
+{
+    string text = "aaaaaasssjhzhgzbzbznjzkjxdidudydhxxnnx";
+    string pattern = "sss";
+    //Search(text, pattern);
+    Rabin_Karp(text, pattern);
+
+}

@@ -1,0 +1,204 @@
+#include <iostream>
+#include <fstream>
+
+using namespace std;
+
+struct nodeX
+{
+    int val1;
+    int val2;
+    int len;
+    nodeX* next;
+};
+
+void add(nodeX*& h, int x1, int x2, int y)
+{
+    nodeX* p = new nodeX;
+    p->val1 = x1;
+    p->val2 = x2;
+    p->len = y;
+    p->next = nullptr;
+
+    if (h == nullptr || y < h->len)
+    {
+        p->next = h;
+        h = p;
+    }
+    else
+    {
+        nodeX* current = h;
+        while (current->next != nullptr && current->next->len <= y)
+        {
+            current = current->next;
+        }
+        p->next = current->next;
+        current->next = p;
+    }
+}
+
+
+void show(nodeX*& h)
+{
+    nodeX* p = h;
+    cout << "->";
+    while (p != NULL)
+    {
+        cout << p->val1 << "/" << p->val2 << "/" << p->len << "->";
+        p = p->next;
+    }
+    cout << "NULL" << endl;
+}
+
+int main()
+{
+    int rozmiar;
+    fstream czytaj;
+    czytaj.open("graf.txt");
+    czytaj >> rozmiar;
+    cout << rozmiar;
+    //Alokacja Dynamicznej Tablicy 2D , która będzie przechowywać macierz sąsiedztwa grafu
+    int** M = new int* [rozmiar];
+    for (int i = 0; i < rozmiar; i++)
+        M[i] = new int[rozmiar];
+    cout << endl;
+    for (int i = 0; i < rozmiar; i++)
+    {
+        for (int j = 0; j < rozmiar; j++)
+        {
+            czytaj >> M[i][j];
+            cout << M[i][j] << " ";
+        }
+        cout << endl;
+    }
+
+    nodeX* pom = NULL;
+    // Flaga do śledzenia czy krawędź już istnieje w liście
+    bool zmienna = 0;
+    cout << endl;
+
+    // Pętla po wierzchołkach 
+    for (int i = 0; i < rozmiar; i++)
+    {
+        // Pętla po kolumnach 
+        for (int j = 0; j < rozmiar; j++)
+        {
+            // Sprawdzenie, czy istnieje krawędź między wierzchołkiem i a j
+            if (M[i][j] != 0)
+            {
+                // Inicjalizacja tymczasowego wskaźnika do listy
+                nodeX* tmp = pom;
+
+                // Sprawdzenie, czy krawędź już istnieje w liście
+                while (tmp != NULL)
+                {
+                    if (tmp->len == M[i][j] && tmp->val1 == j + 1 && tmp->val2 == i + 1)
+                    {
+                        // Jeśli krawędź istnieje, ustawienie flagi na true i przerwanie pętli
+                        zmienna = 1;
+                        break;
+                    }
+                    tmp = tmp->next;
+                }
+
+                // Jeśli krawędź nie istnieje, dodanie jej do listy
+                if (zmienna == 0)
+                {
+                    add(pom, i + 1, j + 1, M[i][j]);
+                }
+
+                // Resetowanie flagi
+                zmienna = 0;
+            }
+        }
+    }
+
+    show(pom);
+
+
+    // Dynamiczna alokacja pamięci dla tablicy kolorów wierzchołków (0 - biały, 1 - szary)
+    int* kol = new int[rozmiar + 1];
+
+    // Dynamiczna alokacja pamięci dla tablicy przynależności do lasu
+    int* las = new int[rozmiar + 1];
+
+    // Inicjalizacja obu tablic zerami
+    for (int i = 0; i < rozmiar + 1; i++)
+    {
+        kol[i] = 0;
+        las[i] = 0;
+    }
+
+    int iteratorLasow = 1;
+    nodeX* got = NULL;
+
+    // Początkowy wskaźnik na listę krawędzi do iteracji
+    nodeX* tmp = pom;
+
+    // Flaga do sprawdzania warunków w pętli
+    bool spr = 0;
+
+    // Iteracja po liście krawędzi
+    while (tmp != NULL)
+    {
+        // Warunek sprawdzający, czy oba wierzchołki krawędzi są białe
+        if (kol[tmp->val1] == 0 && kol[tmp->val2] == 0)
+        {
+            // Oznaczenie wierzchołków jako szare, przypisanie numeru lasu i dodanie krawędzi do drzewa
+            kol[tmp->val1] = 1;
+            kol[tmp->val2] = 1;
+            las[tmp->val1] = iteratorLasow;
+            las[tmp->val2] = iteratorLasow;
+            
+            iteratorLasow++;
+            add(got, tmp->val1, tmp->val2, tmp->len);
+        }
+        // Warunek sprawdzający, czy jeden wierzchołek jest biały, a drugi szary
+        else if (kol[tmp->val1] == 0 && kol[tmp->val2] == 1)
+        {
+            // Oznaczenie białego wierzchołka jako szarego, przypisanie mu numeru lasu i dodanie krawędzi do drzewa
+            kol[tmp->val1] = 1;
+            las[tmp->val1] = las[tmp->val2];
+
+            add(got, tmp->val1, tmp->val2, tmp->len);
+        }
+        // Warunek sprawdzający, czy jeden wierzchołek jest szary, a drugi biały
+        else if (kol[tmp->val1] == 1 && kol[tmp->val2] == 0)
+        {
+            // Oznaczenie białego wierzchołka jako szarego, przypisanie mu numeru lasu i dodanie krawędzi do drzewa
+            kol[tmp->val2] = 1;
+            las[tmp->val2] = las[tmp->val1];
+            add(got, tmp->val1, tmp->val2, tmp->len);
+        }
+        // Warunek sprawdzający, czy oba wierzchołki należą do różnych lasów
+        else if (las[tmp->val1] != las[tmp->val2])
+        {
+            // Łączenie lasów, dodanie krawędzi do drzewa
+            int oldLas = las[tmp->val1];
+            int newLas = las[tmp->val2];
+
+            // Aktualizacja numeru lasu dla wierzchołków w starym lesie
+            for (int i = 1; i < rozmiar + 1; i++)
+            {
+                if (las[i] == oldLas)
+                    las[i] = newLas;
+            }
+
+            // Dodanie krawędzi do drzewa, jeśli numery lasów są różne
+            if (oldLas != newLas)
+                add(got, tmp->val1, tmp->val2, tmp->len);
+        }
+
+        // Wyświetlenie numerów lasów po każdej iteracji
+        /*cout << endl;
+        for (int i = 1; i < rozmiar + 1; i++)
+            cout << las[i];*/
+
+        // Przesunięcie wskaźnika do następnego elementu listy
+        tmp = tmp->next;
+    }
+    cout << endl;
+    show(got);
+
+    delete[] kol;
+    delete[] las;
+}

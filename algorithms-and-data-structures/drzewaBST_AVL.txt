@@ -1,0 +1,491 @@
+#include <iostream>
+
+using namespace std;
+
+struct Node {
+    int value;
+    int balance;
+    Node* parent;
+    Node* left;
+    Node* right;
+};
+
+void NullHandle() 
+{
+    cout << "Przekazano wartosc null!";
+}
+
+void AddBST(Node*& root, int value) {
+    if (root == NULL) 
+    {
+        Node* p = new Node;
+        p->value = value;
+        p->left = NULL;
+        p->right = NULL;
+        p->parent = NULL;
+        root = p;
+    }
+    else
+    {
+        if (value < root->value) 
+        {
+            AddBST(root->left, value);
+            root->left->parent = root;
+        }
+        else
+        {
+            AddBST(root->right, value);
+            root->right->parent = root;
+        }
+    }
+}
+
+Node* Minimum(Node*& root)
+{
+    if (root->left != NULL) 
+    {
+        return Minimum(root->left);
+    }
+    return root;
+}
+
+Node* Max(Node*& root) 
+{
+    if (root->right != NULL) 
+    {
+        return Max(root->right);
+    }
+    return root;
+}
+
+Node* Nastepnik2(Node*& root) //kontynuacja nastepnika 
+{
+    //warunek dla korzenia
+    if (root->parent == NULL)
+    {
+        return NULL;
+    }
+
+    if (root->parent->left == root)
+    {
+        return root->parent;
+    }
+    else
+    {
+        return Nastepnik2(root->parent);
+    }
+}
+
+Node* Nastepnik(Node*& root) //nastepnik 
+{
+    if (root->right != NULL)
+    {
+        return Minimum(root->right);
+    }
+    else 
+    {
+        return Nastepnik2(root);
+    }
+}
+
+Node* Poprzednik2(Node*& root) //poprzednik cz2
+{
+    if (root->parent == NULL) 
+    {
+        return NULL;
+    }
+
+    if (root->parent->right == root)
+    {
+        return root->parent;
+    }
+    else
+    {
+        return Poprzednik2(root->parent);
+    }
+}
+
+Node* Poprzednik(Node*& root) //poprzednik cz1
+{
+    if (root->left != NULL)
+    {
+        return Max(root->left);
+    }
+    else
+    {
+        return Poprzednik2(root);
+    }
+}
+
+/// AVL!!!!!!!!!!!!!!!!!!####################################
+
+void RotateLL(Node*& root) 
+{
+    Node* A = root;
+    Node* B = root->left;
+    Node* C = root->left->left;
+
+    B->parent = A->parent;
+
+    if (A->parent != NULL)
+        if (A->parent->left == A) {
+            A->parent->left = B;
+        }
+        else
+        {
+            A->parent->right = B;
+        }
+
+    A->left = NULL;
+    if (B->right != NULL)
+    {
+        A->left = B->right;
+        B->right->parent = A;
+    }
+
+    B->right = A;
+    A->parent = B;
+
+    B->left = C;
+    C->parent = B;
+
+    root = B;
+}
+
+void RotateLR(Node*& root) {
+    Node* A = root;
+    Node* B = root->left;
+    Node* C = root->left->right;
+
+    C->parent = A->parent;
+
+    if (A->parent != NULL)
+        if (A->parent->left == A) {
+            A->parent->left = C;
+        }
+        else
+        {
+            A->parent->right = C;
+        }
+
+    B->right = NULL;
+    if (C->left != NULL) {
+        B->right = C->left;
+        C->left->parent = B;
+    }
+
+    A->left = NULL;
+    if (C->right != NULL) {
+        A->left = C->right;
+        C->right->parent = A;
+    }
+
+    C->left = B;
+    B->parent = C;
+
+    C->right = A;
+    A->parent = C;
+
+    root = C;
+}
+
+void RotateRR(Node*& root) {
+    Node* A = root;
+    Node* B = root->right;
+    Node* C = root->right->right;
+
+    B->parent = A->parent;
+
+    if (A->parent != NULL)
+        if (A->parent->left == A) {
+            A->parent->left = B;
+        }
+        else
+        {
+            A->parent->right = B;
+        }
+
+    A->right = NULL;
+    if (B->left != NULL) {
+        A->right = B->left;
+        B->left->parent = A;
+    }
+
+    B->left = A;
+    A->parent = B;
+
+    B->right = C;
+    C->parent = B;
+
+    root = B;
+}
+
+void RotateRL(Node*& root)
+{
+    Node* A = root;
+    Node* B = root->right;
+    Node* C = root->right->left;
+
+    C->parent = A->parent;
+
+    if (A->parent != NULL)
+        if (A->parent->left == A) {
+            A->parent->left = C;
+        }
+        else
+        {
+            A->parent->right = C;
+        }
+
+    B->left = NULL;
+    if (C->right != NULL) {
+        B->left = C->right;
+        C->right->parent = B;
+    }
+
+    A->right = NULL;
+    if (C->left != NULL) {
+        A->right = C->left;
+        C->left->parent = A;
+    }
+
+    C->right = B;
+    B->parent = C;
+
+    C->left = A;
+    A->parent = C;
+
+    root = C;
+}
+
+int GetHeight(Node* root) 
+{
+    int l = 0;
+    int r = 0;
+    if (root->left != NULL) {
+        l = GetHeight(root->left);
+    }
+    if (root->right != NULL)
+    {
+        r = GetHeight(root->right);
+    }
+
+    if (l > r) {
+        return l + 1;
+    }
+    else
+    {
+        return r + 1;
+    }
+}
+
+void CalculateBalance(Node* root) {
+    int l = 0;
+    int r = 0;
+    if (root->left != NULL) {
+        l = GetHeight(root->left);
+    }
+    if (root->right != NULL)
+    {
+        r = GetHeight(root->right);
+    }
+
+    root->balance = l - r;
+}
+
+void BalanceNode(Node*& root) 
+{
+    CalculateBalance(root);
+    if (root->balance == -2) 
+    {
+        if (root->right->balance == -1) 
+        {
+            RotateRR(root);
+        }
+        else
+        {
+            RotateRL(root);
+        }
+    }
+    else if (root->balance == 2) 
+    {
+        if (root->left->balance == 1) 
+        {
+            RotateLL(root);
+        }
+        else
+        {
+            RotateLR(root);
+        }
+    }
+}
+
+void AddAVL(Node*& root, int value) {
+    if (root == NULL) {
+        Node* p = new Node;
+        p->value = value;
+        p->left = NULL;
+        p->right = NULL;
+        p->parent = NULL;
+        root = p;
+    }
+    else
+    {
+        if (value < root->value) 
+        {
+            AddAVL(root->left, value);
+            root->left->parent = root;
+        }
+        else
+        {
+            AddAVL(root->right, value);
+            root->right->parent = root;
+        }
+        BalanceNode(root);
+    }
+}
+
+void deleteVal(Node*& root, int x)
+{
+    if (root == NULL)
+    {
+        return;
+    }
+    if (x < root->value)
+    {
+        deleteVal(root->left, x);
+    }
+    else
+        if (x > root->value)
+        {
+            deleteVal(root->right, x);
+        }
+    if (x == root->value)
+    { 
+        //usuwanie dla liscia
+        if (root->left == NULL && root->right == NULL)
+        {
+            if (root->parent != NULL) {
+                //usuwanie dla lewego syna
+                if (root == root->parent->left) 
+                {
+                    root->parent->left = NULL;
+                }
+                else 
+                    //usuwanie dla prawego syna
+                   
+                {
+                    root->parent->right = NULL;
+                }
+            }
+            delete root;
+            return;
+        }
+
+        if (root->left == NULL || root->right == NULL)//wezel z jednym synem
+        {
+            if (root->left == NULL)//prawy wezel
+            {
+                root->right->parent = root->parent;
+                root->parent->right = root->right;
+                delete root;
+                return;
+
+            }
+            if (root->right == NULL)//lewy wezel
+            {
+                root->left->parent = root->parent;
+                root->parent->left = root->left;
+                delete root;
+                return;
+            }
+        }
+        if (root->right && root->left)//wezel z dwoma synami
+        {
+            Node* temp;
+
+            temp = Nastepnik(root);
+            int y = root->value;
+            root->value = temp->value;
+            if (temp->parent->left == temp)
+            {
+                temp->parent->left = temp->left;// to bedzie null
+            }
+            else
+            {
+                temp->parent->right = temp->right;
+                if (temp->right)//to nie koniecznie null
+                    temp->right->parent = temp->parent;
+            }
+            delete temp;
+        }
+    }
+}
+
+//szukanie elementu
+Node* wyszukiwanie(Node* root, int value) 
+{
+    if (value == root->value) {
+        return root;
+    }
+    else if (value < root->value) 
+    {
+        wyszukiwanie(root->left, value);
+    }
+    else
+    {
+        wyszukiwanie(root->right, value);
+    }
+}
+
+#define COUNT 10
+void print2DUtil(Node* root, int space)
+{
+    // Base cases
+    if (root == NULL)
+        return;
+
+    // Increase distance between levels
+    space += COUNT;
+
+    // Process right child first
+    print2DUtil(root->right, space);
+
+    // Print current node after space
+    // count
+    cout << endl;
+    for (int i = COUNT; i < space; i++)
+        cout << " ";
+    cout << root->value << "\n";
+
+    // Process left child
+    print2DUtil(root->left, space);
+}
+
+// Wrapper over print2DUtil()
+void print2D(Node* root)
+{
+    // Pass initial space count as 0
+    print2DUtil(root, 0);
+    cout << "------------------------------------------" << endl;
+}
+
+int main()
+{
+    Node* root = NULL;
+    AddAVL(root, 11);
+    AddAVL(root, 34);
+    AddAVL(root, 25);
+    AddAVL(root, 22);
+    AddAVL(root, 18);
+    AddAVL(root, 14);
+    AddAVL(root, 12);
+    AddAVL(root, 16);
+    print2D(root);
+    
+    //deleteVal(root, 18);
+    //print2D(root);
+
+    //wyszukiwanie(root->right);
+    //print2D(root);
+}

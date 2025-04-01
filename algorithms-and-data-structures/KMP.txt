@@ -1,0 +1,71 @@
+#include<iostream>
+using namespace std;
+int main()
+{
+    string slowo = "ababababca";
+    int dlugosc = slowo.length();
+    int tablica[10] = { 0 };
+
+    //string tekst = "dababababca";
+    string tekst = "bacbababaababababababca";
+
+    for (int i = 0; i < 10; i++)
+    {
+        cout << " " << slowo[i];
+    }
+    cout << endl;
+    int wsk = 0;
+    int obecnaLiczba = 0;
+    while (wsk != dlugosc)
+    {
+        if (wsk != 0)
+        {
+            //
+            if (slowo[wsk] == slowo[obecnaLiczba])
+            {
+                obecnaLiczba++;
+                tablica[wsk] = obecnaLiczba;
+            }
+            else
+            {
+                obecnaLiczba = 0;
+                tablica[wsk] = obecnaLiczba;
+            }
+            //
+        }
+
+        wsk++;
+    }
+
+    for (int j = 0; j < 10; j++)
+    {
+        cout << " " << tablica[j];
+    }
+    cout << endl << endl;
+
+    int q = 0;
+
+    for (int s = 0; s < tekst.length(); s++)
+    {
+        for (int j = 0; j < dlugosc;)
+        {
+            if (tekst[j] == slowo[j])
+            {
+                q++;
+                if (q == tekst.length())
+                {
+                    cout << 1;
+                }
+                j++;
+            }
+            else
+            {
+                j++;
+                q = 0;
+
+            }
+        }
+    }
+
+    cout << endl;
+}

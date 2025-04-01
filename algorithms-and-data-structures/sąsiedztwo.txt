@@ -1,0 +1,81 @@
+#include <iostream>
+#include <fstream>
+
+using namespace std;
+
+
+struct node
+{
+    int val;
+    int len;
+    node* next;
+};
+
+void add(node*& h, int x, int y)
+{
+    node* p = new node;
+    p->val = x;
+    p->len = y;
+    p->next = h;
+    h = p;
+}
+
+void show(node*& h)
+{
+    node* p = h;
+    cout << "->";
+    while (p != NULL)
+    {
+        cout << p->val << "(" << p->len << ")" << "->";
+        p = p->next;
+    }
+    cout << "NULL" << endl;
+}
+
+int main()
+{
+
+    int rozmiar;
+    fstream czytaj;
+    czytaj.open("graf.txt");
+    czytaj >> rozmiar;
+    cout << rozmiar;
+
+    int** M = new int* [rozmiar];
+    for (int i = 0; i < rozmiar; i++)
+        M[i] = new int[rozmiar];
+    cout << endl;
+    for (int i = 0; i < rozmiar; i++)
+    {
+        for (int j = 0; j < rozmiar; j++)
+        {
+            czytaj >> M[i][j];
+            cout << M[i][j] << " ";
+        }
+        cout << endl;
+    }
+
+//tworzenie tablicy wskaznikow na listy 
+    node** p = new node * [rozmiar];
+    for (int i = 0; i < rozmiar; i++)
+        p[i] = NULL;
+
+    cout << endl;
+    for (int i = 0; i < rozmiar; i++)
+    {
+        for (int j = 0; j < rozmiar; j++)
+        {
+            if (M[i][j] != 0)
+            {
+                add(p[i], j, M[i][j]);
+            }
+        }
+    }
+    for (int i = 0; i < rozmiar; i++)
+    {
+        show(p[i]);
+        cout << endl;
+    }
+
+    return 0;
+}
